@@ -1,5 +1,6 @@
 package org.daron.board
 
+
 import org.daron.board.models._
 import org.daron.board.service.{BoardService, RichString}
 import org.daron.board.store.{ElectionSimpleStore, VoteSimpleStore}
@@ -54,11 +55,16 @@ class MainFlowSpec extends FlatSpec with Matchers with RichFuture with RichStrin
     val r3 = create(voterKeys3, "3")
     val r4 = create(voterKeys4, "4")
 
+    val invalidRequest = r1.copy(signatureData = SignatureData(r1.signatureData.pk, r2.signatureData.data))
+
     //voting itself
     val vr1 = service.vote(r1).await
     val vr2 = service.vote(r2).await
     val vr3 = service.vote(r3).await
     val vr4 = service.vote(r4).await
+
+    //drop broken data
+    a [NoSuchElementException] should be thrownBy{ service.vote(invalidRequest).await }
 
     //total number should be the same as number of successful votes
     vStore.getAllByElectionId(electionId).await should have length 4
